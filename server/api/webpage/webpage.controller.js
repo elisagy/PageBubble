@@ -50,28 +50,26 @@ function handleError(res, statusCode) {
     };
 }
 
-async function getUrlsByUrl(url) {
+async function getWebpageDataByURL(url) {
     var body = await new Promise((resolve, reject) => request(url, (err, resp, body) => err && reject(err) || resolve(body || ''))),
         $ = cheerio.load(body),
-        urls = [],
-        parsedUrl = new URL(url);
+        hrefs = [],
+        parsedHref = new URL(url);
     $('a').each((i, link) => {
         var href = $(link).attr('href');
         if (!href) return;
         if (href.match(/^\//)) {
             if (href.match(/^\/\//)) {
-                href = (parsedUrl.protocol || '') + href;
+                href = (parsedHref.protocol || '') + href;
+            } else {
+                href = (parsedHref.origin || '') + href;
             }
-            else {
-                href = (parsedUrl.origin || '') + href;
-            }
-        }
-        else if (!href.match(/^http/)) {
+        } else if (!href.match(/^http/)) {
             return;
         }
-        urls.push(href);
+        hrefs.push(href);
     });
-    return _.uniq(urls);
+    return { hrefs: _.uniq(hrefs), title: $('title').text() };
 }
 
 // Gets a list of Webpages
@@ -95,7 +93,7 @@ export async function upsert(req, res) {
         Reflect.deleteProperty(req.body, '_id');
     }
     req.body.url = req.params.url;
-    req.body.hrefs = await getUrlsByUrl(req.body.url);
+    Object.assign(req.body, await getWebpageDataByURL(req.body.url));
     return Webpage.findOneAndUpdate({ url: req.params.url }, req.body, { projection: { _id: 0, url: 1, hrefs: 1, updatedAt: 1 }, new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }).exec()
         .then(respondWithResult(res))
         .catch(handleError(res));

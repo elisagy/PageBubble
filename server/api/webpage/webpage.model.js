@@ -5,19 +5,18 @@ import { registerEvents } from './webpage.events';
 
 var WebpageSchema = new mongoose.Schema({
     title: {
-		type: String,
-		required: true
-	},
+        type: String
+    },
     url: {
-		type: mongoose.SchemaTypes.Url,
-		required: 'Must be a Valid URL',
-		unique: true
-	},
-	hrefs: [{
-		type: mongoose.SchemaTypes.Url,
-		required: 'Must be a Valid URL',
-		unique: true
-	}],
+        type: mongoose.SchemaTypes.Url,
+        required: 'Must be a Valid URL',
+        unique: true
+    },
+    hrefs: [{
+        type: mongoose.SchemaTypes.Url,
+        required: 'Must be a Valid URL',
+        unique: true
+    }],
     active: {
         type: Boolean,
         default: true,
