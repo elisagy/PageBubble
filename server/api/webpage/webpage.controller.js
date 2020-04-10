@@ -67,22 +67,25 @@ async function getWebpageDataByURL(url) {
         } else if (!href.match(/^http/)) {
             return;
         }
-        hrefs.push(href);
+        if (href !== url) {
+            hrefs.push(href);
+        }
     });
     return { hrefs: _.uniq(hrefs), title: $('title').text() };
 }
 
 // Gets a list of Webpages
 export function index(req, res) {
-    return Webpage.find({}, { _id: 0, url: 1, hrefs: 1, updatedAt: 1 }).exec()
+    return Webpage.find({}, { _id: 0, title: 1, url: 1, hrefs: 1, updatedAt: 1 }).exec()
         .then(respondWithResult(res))
         .catch(handleError(res));
 }
 
 // Gets a single Webpage from the DB
 export function show(req, res) {
-    return Webpage.findOne({ url: req.params.url }, { _id: 0, url: 1, hrefs: 1, updatedAt: 1 }).exec()
+    return Webpage.findOne({ url: req.params.url }, { _id: 0, title: 1, url: 1, updatedAt: 1 }).exec()
         .then(handleEntityNotFound(res))
+        .then(async entity => entity && Object.assign({}, entity._doc, { followingWebpages: await Webpage.find({ hrefs: { $in: [entity.url] } }, { _id: 0, title: 1, url: 1, updatedAt: 1 }).exec() }))
         .then(respondWithResult(res))
         .catch(handleError(res));
 }
@@ -94,14 +97,14 @@ export async function upsert(req, res) {
     }
     req.body.url = req.params.url;
     Object.assign(req.body, await getWebpageDataByURL(req.body.url));
-    return Webpage.findOneAndUpdate({ url: req.params.url }, req.body, { projection: { _id: 0, url: 1, hrefs: 1, updatedAt: 1 }, new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }).exec()
+    return Webpage.findOneAndUpdate({ url: req.params.url }, req.body, { projection: { _id: 0, title: 1, url: 1, hrefs: 1, updatedAt: 1 }, new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }).exec()
         .then(respondWithResult(res))
         .catch(handleError(res));
 }
 
 // Deletes a Webpage from the DB
 export function destroy(req, res) {
-    return Webpage.findOne({ url: req.params.url }, { _id: 0, url: 1, hrefs: 1, updatedAt: 1 }).exec()
+    return Webpage.findOne({ url: req.params.url }, { _id: 0 }).exec()
         .then(handleEntityNotFound(res))
         .then(removeEntity(res))
         .catch(handleError(res));
