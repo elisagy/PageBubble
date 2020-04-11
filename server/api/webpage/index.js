@@ -7,6 +7,6 @@ var router = express.Router();
 router.get('/', auth.hasRole('admin'), controller.index);
 router.get('/:url', controller.show);
 router.put('/:url', controller.upsert);
-router.delete('/:url', controller.destroy);
+router.delete('/:url', auth.hasRole('admin'), controller.destroy);
 
 module.exports = router;
