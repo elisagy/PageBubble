@@ -1,10 +1,11 @@
 <div class="container" *ngIf="webpage">
     <div class="row">
         <div class="col-lg-12">
-            <h4>{{ webpage.title || webpage.url }}</h4>
+            <h4><img [src]="unsafeImageUrl(webpage.faviconUrl)" *ngIf="webpage.faviconUrl" width="24" height="24"> {{ webpage.title || webpage.url }}</h4>
             <ul>
                 <li *ngFor="let followingWebpage of webpage.followingWebpages">
                     <a href="{{followingWebpage.url}}" target="_blank"><img [src]="unsafeImageUrl(followingWebpage.faviconUrl)" *ngIf="followingWebpage.faviconUrl" width="16" height="16"> {{ followingWebpage.title || followingWebpage.url }}</a>
+                    <hr>
                 </li>
             </ul>
         </div>
