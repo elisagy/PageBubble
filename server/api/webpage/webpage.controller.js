@@ -71,7 +71,7 @@ async function getWebpageDataByURL(url) {
         body = await new Promise((resolve, reject) => request({ url, headers: { 'Host': parsedURL.host.split('.').length <= 2 ? parsedURL.host : parsedURL.host.split('.').slice(1).join('.'), 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36' } }, (err, resp, body) => err && reject(err) || resolve(resp && resp.statusCode < 300 && body || '')));
 
     if (!body) {
-        return;
+        return {};
     }
 
     var $ = cheerio.load(body),
