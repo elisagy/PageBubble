@@ -8,12 +8,17 @@ var WebpageSchema = new mongoose.Schema({
         type: String
     },
     url: {
-        type: mongoose.SchemaTypes.Url,
+        // type: mongoose.SchemaTypes.Url, // Eli: this validator has issues with hebrew
+        type: String,
         required: 'Must be a Valid URL',
         unique: true
     },
+    faviconUrl: {
+        type: mongoose.SchemaTypes.Url
+    },
     hrefs: [{
-        type: mongoose.SchemaTypes.Url,
+        // type: mongoose.SchemaTypes.Url, // Eli: this validator has issues with hebrew
+        type: String,
         required: 'Must be a Valid URL',
         unique: true
     }],

@@ -93,21 +93,25 @@ async function getWebpageDataByURL(url) {
             // webpagesQueue.add({ href });
         }
     });
-    return { hrefs: _.uniq(hrefs), title: $('title').text() };
+    var faviconUrl = ($('link[rel="shortcut icon"]')[0] || { attribs: {} }).attribs.href || ($('link[rel="alternate icon"]')[0] || { attribs: {} }).attribs.href;
+    if (faviconUrl && !faviconUrl.match(/^http/)) {
+        faviconUrl = (parsedURL.origin || '') + (faviconUrl.match(/^\//) ? '' : '/') + faviconUrl;
+    }
+    return { hrefs: _.uniq(hrefs), title: $('title').text(), faviconUrl };
 }
 
 // Gets a list of Webpages
 export function index(req, res) {
-    return Webpage.find({}, { _id: 0, title: 1, url: 1, hrefs: 1, updatedAt: 1 }).exec()
+    return Webpage.find({}, { _id: 0, title: 1, url: 1, faviconUrl: 1, hrefs: 1, updatedAt: 1 }).exec()
         .then(respondWithResult(res))
         .catch(handleError(res));
 }
 
 // Gets a single Webpage from the DB
 export function show(req, res) {
-    return Webpage.findOne({ url: req.params.url }, { _id: 0, title: 1, url: 1, updatedAt: 1 }).exec()
+    return Webpage.findOne({ url: req.params.url }, { _id: 0, title: 1, url: 1, faviconUrl: 1, updatedAt: 1 }).exec()
         .then(handleEntityNotFound(res))
-        .then(async entity => entity && Object.assign({}, entity._doc, { followingWebpages: await Webpage.find({ hrefs: { $in: [entity.url] } }, { _id: 0, title: 1, url: 1, updatedAt: 1 }).exec() }))
+        .then(async entity => entity && Object.assign({}, entity._doc, { followingWebpages: await Webpage.find({ hrefs: { $in: [entity.url] } }, { _id: 0, title: 1, url: 1, faviconUrl: 1, updatedAt: 1 }).exec() }))
         .then(respondWithResult(res))
         .catch(handleError(res));
 }
@@ -119,7 +123,7 @@ export async function upsert(req, res) {
     }
     req.body.url = req.params.url;
     Object.assign(req.body, await getWebpageDataByURL(req.body.url));
-    return Webpage.findOneAndUpdate({ url: req.params.url }, req.body, { projection: { _id: 0, title: 1, url: 1, hrefs: 1, updatedAt: 1 }, new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }).exec()
+    return Webpage.findOneAndUpdate({ url: req.params.url }, req.body, { projection: { _id: 0, title: 1, url: 1, faviconUrl: 1, hrefs: 1, updatedAt: 1 }, new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }).exec()
         .then(respondWithResult(res))
         .catch(handleError(res));
 }

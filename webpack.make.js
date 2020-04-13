@@ -368,7 +368,8 @@ module.exports = function makeWebpackConfig(options) {
             chunks: false,
         },
         historyApiFallback: {
-            index: 'app.html'
+            index: 'app.html',
+            disableDotRule: true
         },
     };
 
