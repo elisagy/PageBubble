@@ -16,12 +16,12 @@ import * as _ from 'lodash';
 // import Queue from 'bull';
 
 // var webpagesQueue = new Queue('webpages transcoding', 'redis://127.0.0.1:6379');
-// webpagesQueue.process(async (job, done) => {
+// webpagesQueue.process(4, async (job, done) => {
 //     // await new Promise(resolve => setTimeout(resolve, 1000));
 //     var url = job.data.href,
 //         prior24Hours = new Date();
 //     prior24Hours.setTime(prior24Hours.getTime() - 24 * 60 * 60 * 1000);
-//     if (await Webpage.findOne({ url/*, updatedAt: { $gt: prior24Hours }*/ }).exec()) {
+//     if (await Webpage.findOne({ url /*, updatedAt: { $gt: prior24Hours }*/ }).exec()) {
 //         done();
 //         return;
 //     }
@@ -67,37 +67,51 @@ function handleError(res, statusCode) {
 }
 
 async function getWebpageDataByURL(url) {
-    var parsedURL = new URL(url),
-        body = await new Promise((resolve, reject) => request({ url, headers: { 'Host': parsedURL.host.split('.').length <= 2 ? parsedURL.host : parsedURL.host.split('.').slice(1).join('.'), 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36' } }, (err, resp, body) => err && reject(err) || resolve(resp && resp.statusCode < 300 && body || '')));
+    try {
 
-    if (!body) {
+        var parsedURL = new URL(url),
+            body = await new Promise((resolve, reject) => request({
+                url,
+                headers: {
+                    'Host': parsedURL.host,
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36'
+                }
+            }, (err, resp, body) => {
+                return err && reject(err) || resolve(resp && resp.statusCode < 300 && body || '')
+            }));
+
+        if (!body) {
+            return {};
+        }
+
+        var $ = cheerio.load(body),
+            hrefs = [];
+        $('a').each((i, link) => {
+            var href = $(link).attr('href');
+            if (!href) return;
+            if (href.match(/^\//)) {
+                if (href.match(/^\/\//)) {
+                    href = (parsedURL.protocol || '') + href;
+                } else {
+                    href = (parsedURL.origin || '') + href;
+                }
+            } else if (!href.match(/^http/)) {
+                return;
+            }
+            if (href !== url) {
+                hrefs.push(href);
+                // webpagesQueue.add({ href });
+            }
+        });
+        var faviconUrl = ($('link[rel="shortcut icon"]')[0] || { attribs: {} }).attribs.href || ($('link[rel="alternate icon"]')[0] || { attribs: {} }).attribs.href;
+        if (faviconUrl && !faviconUrl.match(/^http/)) {
+            faviconUrl = (parsedURL.origin || '') + (faviconUrl.match(/^\//) ? '' : '/') + faviconUrl;
+        }
+        return { hrefs: _.uniq(hrefs), title: $('title').text(), faviconUrl };
+    } catch (e) {
+        console.log(e);
         return {};
     }
-
-    var $ = cheerio.load(body),
-        hrefs = [];
-    $('a').each((i, link) => {
-        var href = $(link).attr('href');
-        if (!href) return;
-        if (href.match(/^\//)) {
-            if (href.match(/^\/\//)) {
-                href = (parsedURL.protocol || '') + href;
-            } else {
-                href = (parsedURL.origin || '') + href;
-            }
-        } else if (!href.match(/^http/)) {
-            return;
-        }
-        if (href !== url) {
-            hrefs.push(href);
-            // webpagesQueue.add({ href });
-        }
-    });
-    var faviconUrl = ($('link[rel="shortcut icon"]')[0] || { attribs: {} }).attribs.href || ($('link[rel="alternate icon"]')[0] || { attribs: {} }).attribs.href;
-    if (faviconUrl && !faviconUrl.match(/^http/)) {
-        faviconUrl = (parsedURL.origin || '') + (faviconUrl.match(/^\//) ? '' : '/') + faviconUrl;
-    }
-    return { hrefs: _.uniq(hrefs), title: $('title').text(), faviconUrl };
 }
 
 // Gets a list of Webpages
