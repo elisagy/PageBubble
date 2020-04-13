@@ -21,12 +21,12 @@ import * as _ from 'lodash';
 //     var url = job.data.href,
 //         prior24Hours = new Date();
 //     prior24Hours.setTime(prior24Hours.getTime() - 24 * 60 * 60 * 1000);
-//     if (await Webpage.findOne({ url /*, updatedAt: { $gt: prior24Hours }*/ }).exec()) {
+//     if (await Webpage.findOne({ url , updatedAt: { $gt: prior24Hours } }).exec()) {
 //         done();
 //         return;
 //     }
 //     console.log(`Handling ${url}`);
-//     Webpage.updateOne({ url }, await getWebpageDataByURL(job.data.href), { upsert: true }).exec()
+//     Webpage.findOneAndUpdate({ url }, await getWebpageDataByURL(job.data.href), { projection: { _id: 0 }, new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }).exec()
 //         .then(done);
 // });
 
