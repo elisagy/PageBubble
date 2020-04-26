@@ -8,6 +8,9 @@ module.exports = {
         useMongoClient: true,
         uri: 'mongodb://localhost/pagebubble-test'
     },
+    redis: {
+        uri: 'redis://localhost:6379'
+    },
     sequelize: {
         uri: 'sqlite://',
         options: {

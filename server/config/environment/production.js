@@ -20,5 +20,8 @@ module.exports = {
             || process.env.MONGOHQ_URL
             || process.env.OPENSHIFT_MONGODB_DB_URL + process.env.OPENSHIFT_APP_NAME
             || 'mongodb://localhost/pagebubble'
+    },
+    redis: {
+        uri: process.env.REDIS_URI || 'redis://localhost:6379'
     }
 };

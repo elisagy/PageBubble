@@ -8,6 +8,9 @@ module.exports = {
         useMongoClient: true,
         uri: process.env.MONGODB_URI || 'mongodb://localhost/pagebubble-dev'
     },
+    redis: {
+        uri: process.env.REDIS_URI || 'redis://localhost:6379'
+    },
 
     // Seed database on startup
     seedDB: true,

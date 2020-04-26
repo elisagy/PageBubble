@@ -13,22 +13,23 @@ import Webpage from './webpage.model';
 import request from 'request';
 import cheerio from 'cheerio';
 import * as _ from 'lodash';
-// import Queue from 'bull';
+import Queue from 'bull';
+import config from '../../config/environment';
 
-// var webpagesQueue = new Queue('webpages transcoding', 'redis://127.0.0.1:6379');
-// webpagesQueue.process(4, async (job, done) => {
-//     // await new Promise(resolve => setTimeout(resolve, 1000));
-//     var url = job.data.href,
-//         prior24Hours = new Date();
-//     prior24Hours.setTime(prior24Hours.getTime() - 24 * 60 * 60 * 1000);
-//     if (await Webpage.findOne({ url , updatedAt: { $gt: prior24Hours } }).exec()) {
-//         done();
-//         return;
-//     }
-//     console.log(`Handling ${url}`);
-//     Webpage.findOneAndUpdate({ url }, await getWebpageDataByURL(job.data.href), { projection: { _id: 0 }, new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }).exec()
-//         .then(done);
-// });
+var webpagesQueue = new Queue('webpages transcoding', config.redis.uri);
+webpagesQueue.process(1, async (job, done) => {
+    // await new Promise(resolve => setTimeout(resolve, 1000));
+    var url = job.data.href,
+        prior24Hours = new Date();
+    prior24Hours.setTime(prior24Hours.getTime() - 24 * 60 * 60 * 1000);
+    if (await Webpage.findOne({ url , updatedAt: { $gt: prior24Hours } }).exec()) {
+        done();
+        return;
+    }
+    console.log(`Handling ${url}`);
+    Webpage.findOneAndUpdate({ url }, await getWebpageDataByURL(job.data.href), { projection: { _id: 0 }, new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }).exec()
+        .then(done);
+});
 
 function respondWithResult(res, statusCode) {
     statusCode = statusCode || 200;
@@ -100,7 +101,7 @@ async function getWebpageDataByURL(url) {
             }
             if (href !== url) {
                 hrefs.push(href);
-                // webpagesQueue.add({ href });
+                webpagesQueue.add({ href });
             }
         });
         var faviconUrl = ($('link[rel="shortcut icon"]')[0] || { attribs: {} }).attribs.href || ($('link[rel="alternate icon"]')[0] || { attribs: {} }).attribs.href;
@@ -125,7 +126,7 @@ export function index(req, res) {
 export function show(req, res) {
     return Webpage.findOne({ url: req.params.url }, { _id: 0, title: 1, url: 1, faviconUrl: 1, updatedAt: 1 }).exec()
         .then(handleEntityNotFound(res))
-        .then(async entity => entity && Object.assign({}, entity._doc, { followingWebpages: await Webpage.find({ hrefs: { $in: [entity.url] } }, { _id: 0, title: 1, url: 1, faviconUrl: 1, updatedAt: 1 }).exec() }))
+        .then(async entity => entity && Object.assign({}, entity._doc, { followingWebpages: await Webpage.find({ hrefs: { $in: [entity.url] } }, { _id: 0, title: 1, url: 1, faviconUrl: 1, updatedAt: 1 }).sort({ numberOfFollowingWebpages: -1 }).limit(25).exec() }))
         .then(respondWithResult(res))
         .catch(handleError(res));
 }
