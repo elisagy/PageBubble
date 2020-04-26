@@ -99,7 +99,7 @@ async function getWebpageDataByURL(url) {
             } else if (!href.match(/^http/)) {
                 return;
             }
-            if (href !== url) {
+            if (href !== url && !hrefs.includes(href)) {
                 hrefs.push(href);
                 webpagesQueue.add({ href });
             }
@@ -108,7 +108,7 @@ async function getWebpageDataByURL(url) {
         if (faviconUrl && !faviconUrl.match(/^http/)) {
             faviconUrl = (parsedURL.origin || '') + (faviconUrl.match(/^\//) ? '' : '/') + faviconUrl;
         }
-        return { hrefs: _.uniq(hrefs), title: $('title').text(), faviconUrl };
+        return { hrefs: _.uniq(hrefs), title: $('title').text(), faviconUrl, origin: parsedURL.origin };
     } catch (e) {
         console.log(e);
         return {};
@@ -124,9 +124,12 @@ export function index(req, res) {
 
 // Gets a single Webpage from the DB
 export function show(req, res) {
-    return Webpage.findOne({ url: req.params.url }, { _id: 0, title: 1, url: 1, faviconUrl: 1, updatedAt: 1 }).exec()
+    return Webpage.findOne({ url: req.params.url }, { _id: 0, title: 1, url: 1, faviconUrl: 1, origin: 1, updatedAt: 1 }).exec()
         .then(handleEntityNotFound(res))
-        .then(async entity => entity && Object.assign({}, entity._doc, { followingWebpages: await Webpage.find({ hrefs: { $in: [entity.url] } }, { _id: 0, title: 1, url: 1, faviconUrl: 1, updatedAt: 1 }).sort({ numberOfFollowingWebpages: -1 }).limit(25).exec() }))
+        .then(async entity => entity && Object.assign({}, entity._doc, {
+            followingWebpages: await Webpage.find({ hrefs: { $in: [entity.url] } }, { _id: 0, title: 1, url: 1, faviconUrl: 1, updatedAt: 1 }).sort({ numberOfFollowingWebpages: -1 }).limit(25).exec(),
+            followingWebpagesFromDifferentOrigin: await Webpage.find({ origin: { $ne: entity.origin }, hrefs: { $in: [entity.url] } }, { _id: 0, title: 1, url: 1, faviconUrl: 1, updatedAt: 1 }).sort({ numberOfFollowingWebpages: -1 }).limit(25).exec()
+        }))
         .then(respondWithResult(res))
         .catch(handleError(res));
 }

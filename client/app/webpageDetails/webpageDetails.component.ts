@@ -7,8 +7,10 @@ import { SocketService } from '../../components/socket/socket.service';
 interface Webpage {
     title?: string;
     url: string;
+    origin: string;
     updatedAt: Date;
-    followingWebpages: [Webpage]
+    followingWebpages: [Webpage],
+    followingWebpagesFromDifferentOrigin: [Webpage]
 }
 
 @Component({
@@ -20,6 +22,7 @@ export class WebpageDetailsComponent implements OnInit, OnDestroy {
     SocketService;
     Route;
     webpage: Webpage;
+    showAllFollowingWebpages: Boolean = false;
 
     static parameters = [HttpClient, SocketService, ActivatedRoute, DomSanitizer];
     constructor(private http: HttpClient, private socketService: SocketService, private route: ActivatedRoute, private domSanitizer: DomSanitizer) {
@@ -32,6 +35,7 @@ export class WebpageDetailsComponent implements OnInit, OnDestroy {
         return this.route.params.subscribe(params => this.http.get(`/api/webpages/${encodeURIComponent(params.url)}`)
             .subscribe((webpage: Webpage) => {
                 this.webpage = webpage;
+                this.showAllFollowingWebpages = (webpage.followingWebpages || []).length > (webpage.followingWebpagesFromDifferentOrigin || []).length;
                 // this.SocketService.syncUpdates('webpage', this.webpage);
             }));
     }

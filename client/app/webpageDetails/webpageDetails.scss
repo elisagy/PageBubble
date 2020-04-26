@@ -6,15 +6,22 @@ h4 {
     width: 100%;
 }
 
-ul {
-    list-style: none;
-    padding: 0;
+.options {
+    position: relative;
 
-    li {
-        margin-bottom: 0.5em;
+    ul {
+        list-style: none;
+        padding: 0;
+        position: absolute;
+        top: 0;
+        transition: opacity .1s ease-in-out;
 
-        hr {
-            margin: 1em 0;
+        li {
+            margin-bottom: 0.5em;
+
+            hr {
+                margin: 1em 0;
+            }
         }
-    }
+}
 }

@@ -16,6 +16,10 @@ var Webpage,
     faviconUrl: {
         type: String
     },
+    origin: {
+        type: String,
+        required: true
+    },
     hrefs: [{
         type: String,
         unique: true
@@ -33,7 +37,6 @@ var Webpage,
 }, { autoIndex: false });
 
 async function pre(next) {
-    this.set('hrefs', _.uniq(this.get('hrefs')));
     var oldWebpage = await Webpage.findOne({ url: this.get('url') }, { _id: 0, hrefs: 1 });
     Webpage.updateMany({ url: { $in: _.difference(this && this.get('hrefs') || [], oldWebpage && oldWebpage.get('hrefs') || []) } }, { $inc: { quantity: +1, 'numberOfFollowingWebpages': 1 } }).exec();
     Webpage.updateMany({ url: { $in: _.difference(oldWebpage && oldWebpage.get('hrefs') || [], this && this.get('hrefs') || []) } }, { $inc: { quantity: -1, 'numberOfFollowingWebpages': 1 } }).exec();
