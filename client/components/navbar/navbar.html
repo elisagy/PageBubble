@@ -1,31 +1,25 @@
-<div class="navbar navbar-default navbar-static-top">
-  <div class="container">
-    <div class="navbar-header">
-      <button class="navbar-toggle" type="button" (click)="isCollapsed = !isCollapsed">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a href="/" class="navbar-brand">page-bubble</a>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#"><img src="assets/images/pagebubble.png" width="30" height="30" alt=""></a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" (click)="isCollapsed = !isCollapsed">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div [collapse]="isCollapsed" class="collapse navbar-collapse">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item" *ngFor="let item of menu" routerLinkActive="active">
+                <a class="nav-link" routerLink="{{item.link}}">{{item.title}}</a>
+            </li>
+            <li class="nav-item" [hidden]="!isAdmin" routerLinkActive="active">
+                <a class="nav-link" routerLink="/admin">Admin</a>
+            </li>
+        </ul>
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item" [hidden]="isLoggedIn" routerLinkActive="active"><a class="nav-link" routerLink="/signup">Sign up</a></li>
+            <li class="nav-item" [hidden]="isLoggedIn" routerLinkActive="active"><a class="nav-link" routerLink="/login">Login</a></li>
+            <li class="nav-item" [hidden]="!isLoggedIn">
+                <span class="nav-link disabled">Hello {{ currentUser.name }}</span>
+            </li>
+            <li class="nav-item" [hidden]="!isLoggedIn" routerLinkActive="active"><a class="nav-link" routerLink="/settings"><span class="fa fa-cog"></span></a></li>
+            <li class="nav-item" [hidden]="!isLoggedIn"><a class="nav-link" (click)="logout()" style="cursor: pointer;">Log out</a></li>
+        </ul>
     </div>
-    <div [collapse]="isCollapsed" class="navbar-collapse collapse" id="navbar-main">
-      <ul class="nav navbar-nav">
-        <li *ngFor="let item of menu" routerLinkActive="active">
-            <a routerLink="{{item.link}}">{{item.title}}</a>
-        </li>
-        <li [hidden]="!isAdmin" routerLinkActive="active">
-          <a routerLink="/admin">Admin</a>
-        </li>
-      </ul>
-
-      <ul class="nav navbar-nav navbar-right">
-        <li [hidden]="isLoggedIn" routerLinkActive="active"><a routerLink="/signup">Sign up</a></li>
-        <li [hidden]="isLoggedIn" routerLinkActive="active"><a routerLink="/login">Login</a></li>
-        <li [hidden]="!isLoggedIn"><p class="navbar-text">Hello {{ currentUser.name }}</p> </li>
-        <li [hidden]="!isLoggedIn" routerLinkActive="active"><a routerLink="/settings"><span class="glyphicon glyphicon-cog"></span></a></li>
-        <li [hidden]="!isLoggedIn"><a (click)="logout()" style="cursor: pointer;">Log out</a></li>
-      </ul>
-    </div>
-  </div>
-</div>
+</nav>

@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 
 import { RouterModule, Routes } from '@angular/router';
 
-import { TooltipModule } from 'ngx-bootstrap';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 
 import { WebpageDetailsComponent } from './webpageDetails.component';
 import { SocketService } from '../../components/socket/socket.service';

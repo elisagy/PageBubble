@@ -3,6 +3,7 @@ import {
     ApplicationRef,
 } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
 import {
     removeNgStyles,
@@ -32,6 +33,7 @@ const appRoutes: Routes = [{ path: '',
 @NgModule({
     imports: [
         BrowserModule,
+        BrowserAnimationsModule,
         HttpClientModule,
         JwtModule.forRoot({
             config: {
