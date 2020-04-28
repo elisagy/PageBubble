@@ -6,13 +6,13 @@
                 <input id="showAllFollowingWebpages" type="checkbox" [(ngModel)]="showAllFollowingWebpages" [ngModelOptions]="{ standalone: true }" [disabled]="isSameOriginSelectionDisabled()" /> <label for="showAllFollowingWebpages">&nbsp;Show inner domain refrences</label>
             </p>
             <div class="options">
-                <ul [ngStyle]="{ 'opacity': showAllFollowingWebpages ? 100 : 0 }">
+                <ul [ngClass]="{ hidden: !showAllFollowingWebpages }">
                     <li *ngFor="let followingWebpage of webpage.followingWebpages">
                         <a href="{{followingWebpage.url}}" target="_blank"><img [src]="unsafeImageUrl(followingWebpage.faviconUrl)" *ngIf="followingWebpage.faviconUrl" width="16" height="16"> {{ followingWebpage.title || followingWebpage.url }}</a>
                         <hr>
                     </li>
                 </ul>
-                <ul [ngStyle]="{ 'opacity': showAllFollowingWebpages ? 0 : 100 }">
+                <ul [ngClass]="{ hidden: showAllFollowingWebpages }">
                     <li *ngFor="let followingWebpage of webpage.followingWebpagesFromDifferentOrigin">
                         <a href="{{followingWebpage.url}}" target="_blank"><img [src]="unsafeImageUrl(followingWebpage.faviconUrl)" *ngIf="followingWebpage.faviconUrl" width="16" height="16"> {{ followingWebpage.title || followingWebpage.url }}</a>
                         <hr>

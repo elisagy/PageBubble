@@ -8,14 +8,18 @@ h4 {
 }
 
 .options {
-    position: relative;
-
     ul {
+        display: block;
         list-style: none;
+        opacity: 100;
         padding: 0;
-        position: absolute;
         top: 0;
-        transition: opacity .1s ease-in-out;
+        transition: all .1s ease-in-out;
+
+        &.hidden {
+            opacity: 0;
+            height: 0;
+        }
 
         li {
             margin-bottom: 0.5em;
