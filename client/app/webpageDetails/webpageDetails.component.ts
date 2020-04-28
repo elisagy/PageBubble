@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer } from '@angular/platform-browser';
+import * as _ from 'lodash';
 import { SocketService } from '../../components/socket/socket.service';
 
 interface Webpage {
@@ -47,5 +48,12 @@ export class WebpageDetailsComponent implements OnInit, OnDestroy {
 
     unsafeImageUrl(imageUrl) {
         return this.domSanitizer.bypassSecurityTrustUrl(imageUrl);
+    }
+
+    isSameOriginSelectionDisabled() {
+        return this.webpage && (this.webpage.followingWebpages && !this.webpage.followingWebpages.length ||
+            this.webpage.followingWebpagesFromDifferentOrigin && !this.webpage.followingWebpagesFromDifferentOrigin.length ||
+            _.isEqual(this.webpage.followingWebpages, this.webpage.followingWebpagesFromDifferentOrigin));
+
     }
 }
