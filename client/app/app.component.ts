@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, NavigationStart } from '@angular/router';
 
 @Component({
-    selector: 'app',
-    template: `<navbar *ngIf="showNavbarAndfooter()"></navbar>
+	selector: 'app',
+	template: `<navbar></navbar>
     <router-outlet></router-outlet>
-    <footer *ngIf="showNavbarAndfooter()"></footer>`
+    <footer></footer>`
 })
 export class AppComponent {
 	Router;
@@ -13,9 +13,10 @@ export class AppComponent {
 	static parameters = [Router];
 	constructor(private router: Router) {
 		this.Router = router;
-	}
-
-	showNavbarAndfooter() {
-		return !this.Router.url.match(/^\/webpage\-details/);
+		this.Router.events.subscribe((event: Event) => {
+            if (event instanceof NavigationStart) {
+                document.title = `Pagebubble${event.url.split('/')[1] ? ' | ' + event.url.split('/')[1].replace(/\-/g, ' ') : ''}`
+            }
+        });
 	}
 }

@@ -36,6 +36,7 @@ export class WebpageDetailsComponent implements OnInit, OnDestroy {
         return this.route.params.subscribe(params => this.http.get(`/api/webpages/${encodeURIComponent(params.url)}`)
             .subscribe((webpage: Webpage) => {
                 this.webpage = webpage;
+                document.title = `Pagebubble | ${webpage.title || webpage.url}`;
                 this.showAllFollowingWebpages = (webpage.followingWebpages || []).length > (webpage.followingWebpagesFromDifferentOrigin || []).length;
                 // this.SocketService.syncUpdates('webpage', this.webpage);
             }));
