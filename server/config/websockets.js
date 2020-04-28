@@ -8,7 +8,6 @@ import primusEmit from 'primus-emit';
 const registerFunctions = [
     // Insert sockets below
     require('../api/webpage/webpage.socket').register,
-    require('../api/thing/thing.socket').register,
 ];
 
 // When the user disconnects.. perform this
