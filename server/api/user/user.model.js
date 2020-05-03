@@ -12,7 +12,7 @@ var UserSchema = new Schema({
         type: String,
         lowercase: true,
         required() {
-            if(authTypes.indexOf(this.provider) === -1) {
+            if(authTypes.indexOf(this.provider || this._update && this._update.$set && this._update.$set.provider) === -1) {
                 return true;
             } else {
                 return false;
@@ -26,7 +26,7 @@ var UserSchema = new Schema({
     password: {
         type: String,
         required() {
-            if(authTypes.indexOf(this.provider) === -1) {
+            if(authTypes.indexOf(this.provider || this._update && this._update.$set && this._update.$set.provider) === -1) {
                 return true;
             } else {
                 return false;
@@ -73,7 +73,7 @@ UserSchema
 UserSchema
     .path('email')
     .validate(function(email) {
-        if(authTypes.indexOf(this.provider) !== -1) {
+        if(authTypes.indexOf(this.provider || this._update && this._update.$set && this._update.$set.provider) !== -1) {
             return true;
         }
         return email.length;
@@ -83,7 +83,7 @@ UserSchema
 UserSchema
     .path('password')
     .validate(function(password) {
-        if(authTypes.indexOf(this.provider) !== -1) {
+        if(authTypes.indexOf(this.provider || this._update && this._update.$set && this._update.$set.provider) !== -1) {
             return true;
         }
         return password.length;
@@ -93,11 +93,11 @@ UserSchema
 UserSchema
     .path('email')
     .validate(function(value) {
-        if(authTypes.indexOf(this.provider) !== -1) {
+        if(authTypes.indexOf(this.provider || this._update && this._update.$set && this._update.$set.provider) !== -1) {
             return true;
         }
 
-        return this.constructor.findOne({ email: value }).exec()
+        return (this.constructor.findOne ? this.constructor : this.model).findOne({ email: value }).exec()
             .then(user => {
                 if(user) {
                     if(this.id === user.id) {
@@ -127,7 +127,7 @@ UserSchema
         }
 
         if(!validatePresenceOf(this.password)) {
-            if(authTypes.indexOf(this.provider) === -1) {
+            if(authTypes.indexOf(this.provider || this._update && this._update.$set && this._update.$set.provider) === -1) {
                 return next(new Error('Invalid password'));
             } else {
                 return next();

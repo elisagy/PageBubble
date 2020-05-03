@@ -4,6 +4,9 @@ import expressJwt from 'express-jwt';
 import compose from 'composable-middleware';
 import User from '../api/user/user.model';
 
+import request from 'request';
+import set from 'lodash.set';
+
 var validateJwt = expressJwt({
     secret: config.secrets.session
 });
@@ -24,7 +27,30 @@ export function isAuthenticated() {
             if(req.query && typeof req.headers.authorization === 'undefined') {
                 req.headers.authorization = `Bearer ${req.cookies.token}`;
             }
-            validateJwt(req, res, next);
+
+            request({
+                url: 'https://www.googleapis.com/oauth2/v1/userinfo',
+                headers: {
+                    'authorization': req.headers.authorization
+                },
+                json: true
+            }, (err, resp, body) => {
+                if (err || resp.statusCode >= 400) {
+                    validateJwt(req, res, next);
+                }
+                else {
+                    User.findOneAndUpdate({ 'google.id': body.id }, {
+                        name: body.name,
+                        email: body.email,
+                        provider: 'google',
+                        google: { id: body.id }
+                    }, { projection: { _id: 1 }, new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true, context: 'query' }).exec()
+                    .then(user => {
+                        set(req, 'user', user);
+                        next();
+                    });
+                }
+            });
         })
         // Attach user to request
         .use(function(req, res, next) {

@@ -17,7 +17,7 @@ import Queue from 'bull';
 import config from '../../config/environment';
 
 var webpagesQueue = new Queue('webpages transcoding', config.redis.uri);
-webpagesQueue.process(1, async (job, done) => {
+webpagesQueue.process(2, async (job, done) => {
     // await new Promise(resolve => setTimeout(resolve, 1000));
     var url = job.data.href,
         prior24Hours = new Date();
