@@ -44,7 +44,7 @@ export class SignupComponent {
         })
             .then(() => {
                 // Account created, redirect to home
-                this.Router.navigateByUrl('/home');
+                this.Router.navigateByUrl(this.AuthService.getPathname());
             })
             .catch((err: {errors: {field: ValidationError}}) => {
                 this.errors = err.errors;

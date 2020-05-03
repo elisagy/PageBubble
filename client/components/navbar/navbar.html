@@ -1,25 +1,25 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#"><img src="assets/images/pagebubble.png" width="30" height="30" alt=""></a>
+<nav class="navbar navbar-light bg-light fixed-top" [ngClass]="{ 'navbar-expand-lg': !inIframe(), 'navbar-expand': inIframe() }">
+    <span class="navbar-brand"><img src="assets/images/pagebubble.png" width="30" height="30" alt=""></span>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" (click)="isCollapsed = !isCollapsed">
         <span class="navbar-toggler-icon"></span>
     </button>
     <div [collapse]="isCollapsed" class="collapse navbar-collapse">
         <ul class="navbar-nav mr-auto">
-            <li class="nav-item" *ngFor="let item of menu" routerLinkActive="active">
+            <li class="nav-item" *ngFor="let item of menu" routerLinkActive="active" [hidden]="inIframe()">
                 <a class="nav-link" routerLink="{{item.link}}">{{item.title}}</a>
             </li>
-            <li class="nav-item" [hidden]="!isAdmin" routerLinkActive="active">
+            <li class="nav-item" [hidden]="!isAdmin || inIframe()" routerLinkActive="active">
                 <a class="nav-link" routerLink="/admin">Admin</a>
             </li>
         </ul>
         <ul class="navbar-nav ml-auto">
-            <li class="nav-item" [hidden]="isLoggedIn" routerLinkActive="active"><a class="nav-link" routerLink="/signup">Sign up</a></li>
-            <li class="nav-item" [hidden]="isLoggedIn" routerLinkActive="active"><a class="nav-link" routerLink="/login">Login</a></li>
+            <!-- <li class="nav-item" [hidden]="isLoggedIn" routerLinkActive="active"><a class="nav-link" routerLink="/signup">Sign up</a></li> -->
+            <li class="nav-item" [hidden]="isLoggedIn" routerLinkActive="active"><a class="nav-link" routerLink="/login" [hidden]="!inIframe()">Login</a></li>
             <li class="nav-item" [hidden]="!isLoggedIn">
                 <span class="nav-link disabled">Hello {{ currentUser.name }}</span>
             </li>
-            <li class="nav-item" [hidden]="!isLoggedIn" routerLinkActive="active"><a class="nav-link" routerLink="/settings"><span class="fa fa-cog"></span></a></li>
-            <li class="nav-item" [hidden]="!isLoggedIn"><a class="nav-link" (click)="logout()" style="cursor: pointer;">Log out</a></li>
+            <!-- <li class="nav-item" [hidden]="!isLoggedIn" routerLinkActive="active"><a class="nav-link" routerLink="/settings"><span class="fa fa-cog"></span></a></li> -->
+            <li class="nav-item" [hidden]="!isLoggedIn"><a class="nav-link" (click)="logout()" style="cursor: pointer;" [hidden]="!inIframe()">Log out</a></li>
         </ul>
     </div>
 </nav>

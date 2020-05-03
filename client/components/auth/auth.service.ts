@@ -19,6 +19,8 @@ export class AuthService {
     userRoles = userRoles || [];
     UserService;
 
+    pathname: String = window.self === window.top ? '/home' : window.self.location.pathname;
+
     static parameters = [HttpClient, UserService];
     constructor(private http: HttpClient, private userService: UserService) {
         this.http = http;
@@ -199,5 +201,9 @@ export class AuthService {
      */
     getToken() {
         return localStorage.getItem('id_token');
+    }
+
+    getPathname() {
+        return this.pathname;
     }
 }

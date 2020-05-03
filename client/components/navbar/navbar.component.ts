@@ -47,7 +47,12 @@ export class NavbarComponent {
 
     logout() {
         return this.AuthService.logout().then(() => {
-            this.Router.navigateByUrl('/home');
+            this.Router.navigateByUrl(this.AuthService.getPathname());
             this.reset();
         });
-    }}
+    }
+
+    inIframe() {
+        return window.self !== window.top;
+    }
+}

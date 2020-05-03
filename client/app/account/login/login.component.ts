@@ -42,11 +42,11 @@ export class LoginComponent {
         })
             .then(() => {
                 // Logged in, redirect to home
-                this.Router.navigateByUrl('/home');
+                this.Router.navigateByUrl(this.AuthService.getPathname());
 
             })
             .catch(err => {
-                this.errors.login = err.json().message;
+                this.errors.login = err.error && err.error.message || err.message;
             });
     }
 }

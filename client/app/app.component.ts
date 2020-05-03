@@ -14,9 +14,16 @@ export class AppComponent {
 	constructor(private router: Router) {
 		this.Router = router;
 		this.Router.events.subscribe((event: Event) => {
-            if (event instanceof NavigationStart) {
-                document.title = `Pagebubble${event.url.split('/')[1] ? ' | ' + event.url.split('/')[1].replace(/\-/g, ' ') : ''}`
-            }
-        });
+			function capitalize(s) {
+				if (typeof s !== 'string') {
+					return '';
+				}
+				return s.charAt(0).toUpperCase() + s.slice(1);
+			}
+
+			if (event instanceof NavigationStart) {
+				document.title = `Pagebubble${event.url.split('/')[1] ? ' | ' + capitalize(event.url.split('/')[1].replace(/\-/g, ' ')) : ''}`
+			}
+		});
 	}
 }
