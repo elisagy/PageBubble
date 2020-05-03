@@ -5,6 +5,8 @@ import path from 'path';
 import Primus from 'primus';
 import primusEmit from 'primus-emit';
 
+import * as jwt from 'jsonwebtoken';
+
 const registerFunctions = [
     // Insert sockets below
     require('../api/webpage/webpage.socket').register,
@@ -24,8 +26,13 @@ function onConnect(spark) {
         spark.log(JSON.stringify(data, null, 2));
     });
 
+    spark.on('authorization', token => {
+        var dtoken = jwt.decode(token, { complete: true }) || {};
+        spark.userId = dtoken.payload && dtoken.payload._id;
+    });
+
     // Register the spark with each WebSocket event handler
-    for(let register of registerFunctions) {
+    for (let register of registerFunctions) {
         register(spark);
     }
 }
@@ -47,11 +54,11 @@ export default function initWebSocketServer(server) {
     primus.on('connection', onConnect);
     primus.on('disconnection', onDisconnect);
 
-    if(process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development') {
         return new Promise((resolve, reject) => {
             // Save the primus client library configured for our server settings
             primus.save(path.join(__dirname, '../../client/components/socket/primus.js'), err => {
-                if(err) return reject(err);
+                if (err) return reject(err);
 
                 resolve(primus);
             });

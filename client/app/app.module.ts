@@ -4,7 +4,7 @@ import {
 } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import {
     removeNgStyles,
     createNewHosts,
@@ -17,6 +17,7 @@ import { AppComponent } from './app.component';
 import { MainModule } from './main/main.module';
 import { WebpageDetailsModule } from './webpageDetails/webpageDetails.module';
 import { DirectivesModule } from '../components/directives.module';
+import { AuthInterceptor } from '../components/auth/interceptor.service';
 import { JwtModule } from '@auth0/angular-jwt';
 import { AccountModule } from './account/account.module';
 import { AdminModule } from './admin/admin.module';
@@ -52,6 +53,13 @@ const appRoutes: Routes = [{ path: '',
         AppComponent,
     ],
     bootstrap: [AppComponent],
+    providers: [
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: AuthInterceptor,
+            multi: true
+        }
+    ],
 })
 export class AppModule {
     static parameters = [ApplicationRef];

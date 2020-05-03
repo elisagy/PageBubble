@@ -11,11 +11,12 @@ export class SocketService {
         const primus = Primus.connect();
         primus.plugin('emit', primusEmit);
 
-        primus.on('open', function open() {
-           console.log('Connection opened');
+        primus.on('open', () => {
+            console.log('Connection opened');
+            this.setAuthorizationToken();
         });
 
-        if(process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === 'development') {
             primus.on('data', function message(data) {
                 console.log('Socket:', data);
             });
@@ -26,6 +27,10 @@ export class SocketService {
         });
 
         this.primus = primus;
+    }
+
+    setAuthorizationToken() {
+        this.primus.emit('authorization', localStorage.getItem('id_token'));
     }
 
     /**
@@ -44,13 +49,13 @@ export class SocketService {
          */
         this.primus.on(`${modelName}:save`, item => {
             console.log(item);
-            let oldItem = find(array, {_id: item._id});
+            let oldItem = find(array, { _id: item._id });
             let index = array.indexOf(oldItem);
             let event = 'created';
 
             // replace oldItem if it exists
             // otherwise just add item to the collection
-            if(oldItem) {
+            if (oldItem) {
                 array.splice(index, 1, item);
                 event = 'updated';
             } else {
@@ -64,7 +69,7 @@ export class SocketService {
          * Syncs removed items on 'model:remove'
          */
         this.primus.on(`${modelName}:remove`, item => {
-            remove(array, {_id: item._id});
+            remove(array, { _id: item._id });
             cb('deleted', item, array);
         });
     }
