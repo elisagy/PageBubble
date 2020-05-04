@@ -38,11 +38,11 @@ module.exports = function makeWebpackConfig(options) {
      */
     if(!TEST) {
         config.entry = {
-            app: './client/app/app.ts',
             polyfills: './client/app/polyfills.ts',
             vendor: [
                 'lodash'
-            ]
+            ],
+            app: './client/app/app.ts'
         };
     }
 
