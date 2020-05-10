@@ -23,18 +23,18 @@ var MongoStore = connectMongo(session);
 export default function(app) {
     var env = process.env.NODE_ENV;
 
-    if(env === 'development' || env === 'test') {
+    if (env === 'development' || env === 'test') {
         app.use(express.static(path.join(config.root, '.tmp')));
         app.use(require('cors')());
     }
 
-    if(env === 'production') {
+    if (env === 'production') {
         app.use(favicon(path.join(config.root, 'client', 'favicon.ico')));
     }
 
     app.set('appPath', path.join(config.root, 'client'));
     app.use(express.static(app.get('appPath')));
-    if(env === 'production') {
+    if (env === 'production') {
         app.use('/', expressStaticGzip(app.get('appPath')));
     }
     app.use(morgan('dev'));
@@ -43,8 +43,8 @@ export default function(app) {
     app.engine('html', require('ejs').renderFile);
     app.set('view engine', 'html');
     app.use(compression());
-    app.use(bodyParser.urlencoded({ extended: false }));
-    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+    app.use(bodyParser.json({ limit: '50mb' }));
     app.use(methodOverride());
     app.use(cookieParser());
     app.use(passport.initialize());
@@ -67,7 +67,7 @@ export default function(app) {
      * Lusca - express server security
      * https://github.com/krakenjs/lusca
      */
-    if(false/*env !== 'test' && env !== 'development'*/) {
+    if (false /*env !== 'test' && env !== 'development'*/ ) {
         app.use(lusca({
             csrf: {
                 header: 'x-xsrf-token',
@@ -82,7 +82,7 @@ export default function(app) {
         }));
     }
 
-    if(env === 'development' || env === 'test') {
+    if (env === 'development' || env === 'test') {
         app.use(errorHandler()); // Error handler - has to be last
     }
 }

@@ -17,12 +17,12 @@ import Queue from 'bull';
 import config from '../../config/environment';
 
 var webpagesQueue = new Queue('webpages transcoding', config.redis.uri);
-webpagesQueue.process(2, async (job, done) => {
+webpagesQueue.process(1, async (job, done) => {
     // await new Promise(resolve => setTimeout(resolve, 1000));
     var url = job.data.href,
         prior24Hours = new Date();
     prior24Hours.setTime(prior24Hours.getTime() - 24 * 60 * 60 * 1000);
-    if (await Webpage.findOne({ url , updatedAt: { $gt: prior24Hours } }).exec()) {
+    if (await Webpage.findOne({ url, updatedAt: { $gt: prior24Hours } }).exec()) {
         done();
         return;
     }
@@ -67,7 +67,11 @@ function handleError(res, statusCode) {
     };
 }
 
-async function getWebpageDataByURL(url) {
+function getTitleFromTitlesArray(titles) {
+    return _.maxBy(_.entries(_.countBy(titles, 'name')), _.last).shift();
+}
+
+async function getWebpageDataByURL(url, reportedBy) {
     try {
 
         var parsedURL = new URL(url),
@@ -108,7 +112,7 @@ async function getWebpageDataByURL(url) {
         if (faviconUrl && !faviconUrl.match(/^http/)) {
             faviconUrl = (parsedURL.origin || '') + (faviconUrl.match(/^\//) ? '' : '/') + faviconUrl;
         }
-        return { hrefs: _.uniq(hrefs), title: $('title').text(), faviconUrl, origin: parsedURL.origin };
+        return { hrefs: _.uniq(hrefs).map(href => ({ url: href, reportedBy })), title: [{ name: $('title').text() }], faviconUrl, origin: parsedURL.origin };
     } catch (e) {
         console.log(e);
         return {};
@@ -127,8 +131,9 @@ export function show(req, res) {
     return Webpage.findOne({ url: req.params.url }, { _id: 0, title: 1, url: 1, faviconUrl: 1, origin: 1, updatedAt: 1 }).exec()
         .then(handleEntityNotFound(res))
         .then(async entity => entity && Object.assign({}, entity._doc, {
-            followingWebpages: await Webpage.find({ hrefs: { $in: [entity.url] } }, { _id: 0, title: 1, url: 1, faviconUrl: 1, updatedAt: 1 }).sort({ numberOfFollowingWebpages: -1 }).limit(25).exec(),
-            followingWebpagesFromDifferentOrigin: await Webpage.find({ origin: { $ne: entity.origin }, hrefs: { $in: [entity.url] } }, { _id: 0, title: 1, url: 1, faviconUrl: 1, updatedAt: 1 }).sort({ numberOfFollowingWebpages: -1 }).limit(25).exec()
+            title: getTitleFromTitlesArray(entity.title),
+            followingWebpages: (await Webpage.find({ hrefs: { $elemMatch: { url: entity.url } } }, { _id: 0, title: 1, url: 1, faviconUrl: 1, updatedAt: 1 }).sort({ numberOfFollowingWebpages: -1 }).limit(25).exec()).map(webpage => Object.assign(webpage, { title: getTitleFromTitlesArray(webpage.title) })),
+            followingWebpagesFromDifferentOrigin: (await Webpage.find({ origin: { $ne: entity.origin }, hrefs: { $elemMatch: { url: entity.url } } }, { _id: 0, title: 1, url: 1, faviconUrl: 1, updatedAt: 1 }).sort({ numberOfFollowingWebpages: -1 }).limit(25).exec()).map(webpage => Object.assign(webpage, { title: getTitleFromTitlesArray(webpage.title) }))
         }))
         .then(respondWithResult(res))
         .catch(handleError(res));
@@ -140,7 +145,12 @@ export async function upsert(req, res) {
         Reflect.deleteProperty(req.body, '_id');
     }
     req.body.url = req.params.url;
-    Object.assign(req.body, await getWebpageDataByURL(req.body.url));
+    (req.body.hrefs || []).forEach(href => href.reportedBy = req.user && req.user._id);
+    var oldWebpage = await Webpage.findOne({ url: req.params.url }, { _id: 0, hrefs: 1 }).exec(),
+        webpageData = await getWebpageDataByURL(req.body.url, req.user && req.user._id);
+    webpageData.hrefs = _.uniqWith(_.pullAllWith((req.body && req.body.hrefs || []).concat((oldWebpage || { hrefs: [] }).hrefs), [{}], href => href.url === req.params.url).concat(webpageData.hrefs || []), (href1, href2) => href1.url === href2.url && href1.reportedBy === href2.reportedBy);
+    webpageData.title = _.uniqBy([{ name: req.body.title, reportedBy: req.user && req.user._id }].concat(oldWebpage && oldWebpage.title || []).concat(webpageData && webpageData.title || []), 'reportedBy');
+    Object.assign(req.body, webpageData);
     return Webpage.findOneAndUpdate({ url: req.params.url }, req.body, { projection: { _id: 0, title: 1, url: 1, faviconUrl: 1, hrefs: 1, updatedAt: 1 }, new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true }).exec()
         .then(respondWithResult(res))
         .catch(handleError(res));

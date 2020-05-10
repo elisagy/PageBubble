@@ -5,42 +5,43 @@ import * as _ from 'lodash';
 
 var Webpage,
     WebpageSchema = new mongoose.Schema({
-    title: {
-        type: String
-    },
-    url: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    faviconUrl: {
-        type: String
-    },
-    origin: {
-        type: String,
-        required: true
-    },
-    hrefs: [{
-        type: String,
-        unique: true
-    }],
-    numberOfFollowingWebpages: {
-        type: Number,
-        default: 0,
-        required: true
-    },
-    active: {
-        type: Boolean,
-        default: true,
-        required: true
-    }
-}, { autoIndex: false });
+        title: [{
+            // name: String,
+            // reportedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+        }],
+        url: {
+            type: String,
+            required: true,
+            unique: true
+        },
+        faviconUrl: {
+            type: String
+        },
+        origin: {
+            type: String,
+            required: true
+        },
+        hrefs: [{
+            // url: String,
+            // reportedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+        }],
+        numberOfFollowingWebpages: {
+            type: Number,
+            default: 0,
+            required: true
+        },
+        active: {
+            type: Boolean,
+            default: true,
+            required: true
+        }
+    }, { autoIndex: false });
 
 async function pre(next) {
     var oldWebpage = await Webpage.findOne({ url: this.get('url') }, { _id: 0, hrefs: 1 });
-    Webpage.updateMany({ url: { $in: _.difference(this && this.get('hrefs') || [], oldWebpage && oldWebpage.get('hrefs') || []) } }, { $inc: { quantity: +1, 'numberOfFollowingWebpages': 1 } }).exec();
-    Webpage.updateMany({ url: { $in: _.difference(oldWebpage && oldWebpage.get('hrefs') || [], this && this.get('hrefs') || []) } }, { $inc: { quantity: -1, 'numberOfFollowingWebpages': 1 } }).exec();
-    this.set('numberOfFollowingWebpages', await Webpage.count({ hrefs: { $in: [this.get('url')] } }).exec());
+    Webpage.updateMany({ url: { $in: _.difference((this && this.get('hrefs') || []).map(href => href.url), (oldWebpage && oldWebpage.get('hrefs') || []).map(href => href.url)) } }, { $inc: { quantity: +1, 'numberOfFollowingWebpages': 1 } }).exec();
+    Webpage.updateMany({ url: { $in: _.difference((oldWebpage && oldWebpage.get('hrefs') || []).map(href => href.url), (this && this.get('hrefs') || []).map(href => href.url)) } }, { $inc: { quantity: -1, 'numberOfFollowingWebpages': 1 } }).exec();
+    this.set('numberOfFollowingWebpages', await Webpage.count({ hrefs: { $elemMatch: { url: this.get('url') } } }).exec());
     next();
 }
 
