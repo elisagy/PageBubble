@@ -16,7 +16,8 @@ import * as _ from 'lodash';
 import Queue from 'bull';
 import config from '../../config/environment';
 
-var webpagesQueue = new Queue('webpages transcoding', config.redis.uri);
+const maxWaitingWebpages = 100 * 1000,
+    webpagesQueue = new Queue('webpages transcoding', config.redis.uri);
 webpagesQueue.process(1, async (job, done) => {
     // await new Promise(resolve => setTimeout(resolve, 1000));
     var url = job.data.href,
@@ -91,7 +92,7 @@ async function getWebpageDataByURL(url, reportedBy) {
 
         var $ = cheerio.load(body),
             hrefs = [];
-        $('a').each((i, link) => {
+        $('a').each(async (i, link) => {
             var href = $(link).attr('href');
             if (!href) return;
             if (href.match(/^\//)) {
@@ -105,7 +106,9 @@ async function getWebpageDataByURL(url, reportedBy) {
             }
             if (href !== url && !hrefs.includes(href)) {
                 hrefs.push(href);
-                webpagesQueue.add({ href });
+                if ((await webpagesQueue.getJobCounts()).waiting < maxWaitingWebpages) {
+                    webpagesQueue.add({ href });
+                }
             }
         });
         var faviconUrl = ($('link[rel="shortcut icon"]')[0] || { attribs: {} }).attribs.href || ($('link[rel="alternate icon"]')[0] || { attribs: {} }).attribs.href;
