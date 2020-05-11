@@ -18,7 +18,7 @@ window.addEventListener('message', message => {
 	}
 
 	var data = JSON.parse(message.data);
-	requestDataFromExtensionCallbacks[data.hash](data.response);
+	requestDataFromExtensionCallbacks[data.hash] && requestDataFromExtensionCallbacks[data.hash](data.response);
 });
 
 @Component({

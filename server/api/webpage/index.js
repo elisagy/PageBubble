@@ -5,7 +5,7 @@ import * as auth from '../../auth/auth.service';
 var router = express.Router();
 
 router.get('/', auth.hasRole('admin'), controller.index);
-router.get('/:url', controller.show);
+router.get('/:url', auth.isAuthenticated(), controller.show);
 // router.put('/:url', controller.upsert);
 router.put('/:url', auth.isAuthenticated(), controller.upsert);
 router.delete('/:url', auth.hasRole('admin'), controller.destroy);
