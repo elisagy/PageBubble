@@ -34,7 +34,9 @@ export class AuthInterceptor implements HttpInterceptor {
             localStorage.removeItem('user');
             localStorage.removeItem('id_token');
             this.SocketService.setAuthorizationToken();
-            this.Router.navigateByUrl('/login');
+            if (window.self !== window.top) {
+              this.Router.navigateByUrl('/login');
+            }
           }
 
           return throwError(error);
