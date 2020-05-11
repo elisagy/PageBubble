@@ -1,4 +1,15 @@
 <div class="container-fluid">
+    <div class="d-flex align-items-center justify-content-center" style="height: calc(100vh - 227px);" *ngIf="isLoading">
+        <div class="spinner-grow text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <div class="spinner-grow text-primary" role="status" style="animation-delay: 0.25s;">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <div class="spinner-grow text-primary" role="status" style="animation-delay: 0.5s;">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
     <div class="row" *ngIf="webpage">
         <div class="col-lg-12">
             <h4><img [src]="unsafeImageUrl(webpage.faviconUrl)" *ngIf="webpage.faviconUrl" style="max-height: 24px; max-width: 24px;"> {{ webpage.title || webpage.url }}</h4>

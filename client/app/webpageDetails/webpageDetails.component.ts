@@ -23,6 +23,7 @@ export class WebpageDetailsComponent implements OnInit, OnDestroy {
     SocketService;
     Route;
     webpage: Webpage;
+    isLoading: boolean;
     showAllFollowingWebpages: Boolean = false;
 
     static parameters = [HttpClient, SocketService, ActivatedRoute, DomSanitizer];
@@ -33,13 +34,14 @@ export class WebpageDetailsComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+        this.isLoading = true;
         return this.route.params.subscribe(params => this.http.get(`/api/webpages/${encodeURIComponent(params.url)}`)
             .subscribe((webpage: Webpage) => {
                 this.webpage = webpage;
                 document.title = `Pagebubble | ${webpage.title || webpage.url}`;
                 this.showAllFollowingWebpages = (webpage.followingWebpages || []).length > (webpage.followingWebpagesFromDifferentOrigin || []).length;
                 // this.SocketService.syncUpdates('webpage', this.webpage);
-            }));
+            }, null, () => this.isLoading = false));
     }
 
 
